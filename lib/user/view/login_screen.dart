@@ -11,8 +11,12 @@ import 'package:login_authentication/common/const/data.dart';
 import 'package:login_authentication/common/layout/default_layout.dart';
 import 'package:login_authentication/common/secure_storage/secure_storage.dart';
 import 'package:login_authentication/common/view/root_tab.dart';
+import 'package:login_authentication/user/model/user_model.dart';
+import 'package:login_authentication/user/provider/user_me_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
+  static String get routeName => 'login';
+
   const LoginScreen({super.key});
 
   @override
@@ -25,8 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    final dio = Dio();
+    final state = ref.watch(userMeProvider);
 
     return DefaultLayout(
       child: SingleChildScrollView(
@@ -71,43 +74,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 16.0,
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    // ID:비밀번호
-                    final rawString = '$username:$password';
-                    Codec<String, String> stringToBase64 = utf8.fuse(base64);
-
-                    String token = stringToBase64.encode(rawString);
-
-                    final resp = await dio.post(
-                      'http://$ip/auth/login',
-                      options: Options(headers: {
-                        'authorization': 'Basic $token',
-                      }),
-                    );
-
-                    final refreshToken = resp.data['refreshToken'];
-                    final accessToken = resp.data['accessToken'];
-
-                    final storage = ref.read(secureStorageProvider);
-
-                    await storage.write(key: REFRESH_TOKEN_KEY, value: refreshToken);
-                    await storage.write(key: ACCESS_TOKEN_KEY, value: accessToken);
-
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => RootTab(),
-                      ),
-                    );
-                  },
+                  onPressed: state is UserModelLoading
+                      ? null
+                      : () async {
+                          ref.read(userMeProvider.notifier).login(
+                                username: username,
+                                password: password,
+                              );
+                          // // ID:비밀번호
+                          // final rawString = '$username:$password';
+                          // Codec<String, String> stringToBase64 = utf8.fuse(base64);
+                          //
+                          // String token = stringToBase64.encode(rawString);
+                          //
+                          // final resp = await dio.post(
+                          //   'http://$ip/auth/login',
+                          //   options: Options(headers: {
+                          //     'authorization': 'Basic $token',
+                          //   }),
+                          // );
+                          //
+                          // final refreshToken = resp.data['refreshToken'];
+                          // final accessToken = resp.data['accessToken'];
+                          //
+                          // final storage = ref.read(secureStorageProvider);
+                          //
+                          // await storage.write(key: REFRESH_TOKEN_KEY, value: refreshToken);
+                          // await storage.write(key: ACCESS_TOKEN_KEY, value: accessToken);
+                          //
+                          // Navigator.of(context).push(
+                          //   MaterialPageRoute(
+                          //     builder: (_) => RootTab(),
+                          //   ),
+                          // );
+                        },
                   style: ElevatedButton.styleFrom(
                     primary: PRIMARY_COLOR,
                   ),
                   child: Text('로그인'),
                 ),
                 TextButton(
-                  onPressed: () async {
-
-                  },
+                  onPressed: () async {},
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.black,
                   ),

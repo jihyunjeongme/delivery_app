@@ -3,15 +3,18 @@ import 'package:login_authentication/common/const/colors.dart';
 import 'package:login_authentication/common/layout/default_layout.dart';
 import 'package:login_authentication/product/view/product_screen.dart';
 import 'package:login_authentication/restaurant/view/restaurant_screen.dart';
+import 'package:login_authentication/user/view/profile_screen.dart';
 
 class RootTab extends StatefulWidget {
+  static String get routeName => 'home';
+
   const RootTab({super.key});
 
   @override
   State<RootTab> createState() => _RootTabState();
 }
 
-class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin{
+class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
   late TabController controller;
 
   int index = 0;
@@ -52,14 +55,9 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin{
               child: Text('주문'),
             ),
           ),
-          Center(
-            child: Container(
-              child: Text('프로필'),
-            ),
-          ),
+          ProfileScreen(),
         ],
       ),
-
       bottomNavigatorBar: BottomNavigationBar(
         selectedItemColor: PRIMARY_COLOR,
         unselectedItemColor: BODY_TEXT_COLOR,

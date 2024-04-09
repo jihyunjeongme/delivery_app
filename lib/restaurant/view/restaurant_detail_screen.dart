@@ -18,6 +18,8 @@ import 'package:login_authentication/restaurant/repository/restaurant_repository
 import 'package:skeletons/skeletons.dart';
 
 class RestaurantDetailScreen extends ConsumerStatefulWidget {
+  static String get routeName => 'restaurantDetail';
+
   final String id;
 
   const RestaurantDetailScreen({
