@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:login_authentication/order/view/order_done_screen.dart';
 import 'package:login_authentication/common/view/root_tab.dart';
 import 'package:login_authentication/common/view/splash_screen.dart';
+import 'package:login_authentication/restaurant/view/basket_screen.dart';
 import 'package:login_authentication/restaurant/view/restaurant_detail_screen.dart';
 import 'package:login_authentication/user/model/user_model.dart';
 import 'package:login_authentication/user/provider/user_me_provider.dart';
@@ -27,18 +29,29 @@ class AuthProvider extends ChangeNotifier {
 
   List<GoRoute> get routes => [
         GoRoute(
-            path: '/',
-            name: RootTab.routeName,
-            builder: (_, __) => RootTab(),
-            routes: [
-              GoRoute(
-                path: 'restaurant/:rid',
-                name: RestaurantDetailScreen.routeName,
-                builder: (_, state) => RestaurantDetailScreen(
-                  id: state.pathParameters['rid']!,
-                ),
+          path: '/',
+          name: RootTab.routeName,
+          builder: (_, __) => RootTab(),
+          routes: [
+            GoRoute(
+              path: 'restaurant/:rid',
+              name: RestaurantDetailScreen.routeName,
+              builder: (_, state) => RestaurantDetailScreen(
+                id: state.pathParameters['rid']!,
               ),
-            ]),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/basket',
+          name: BasketScreen.routeName,
+          builder: (_, state) => BasketScreen(),
+        ),
+        GoRoute(
+          path: '/order_done',
+          name: OrderDoneScreen.routeName,
+          builder: (_, state) => OrderDoneScreen(),
+        ),
         GoRoute(
           path: '/splash',
           name: SplashScreen.routeName,
@@ -51,9 +64,10 @@ class AuthProvider extends ChangeNotifier {
         ),
       ];
 
-  void logout(){
+  void logout() {
     ref.read(userMeProvider.notifier).logout();
   }
+
   // SplashScreen
   // 앱을 처음 시작했을 때
   // 토큰이 존재하는지 확인하고

@@ -1,17 +1,53 @@
+import 'package:debounce_throttle/debounce_throttle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:login_authentication/product/model/product_model.dart';
 import 'package:login_authentication/user/model/basket_item_model.dart';
 import 'package:collection/collection.dart';
+import 'package:login_authentication/user/model/patch_basket_body.dart';
+import 'package:login_authentication/user/repository/user_me_repository.dart';
 
 final basketProvider =
     StateNotifierProvider<BasketProvider, List<BasketItemModel>>(
   (ref) {
-    return BasketProvider();
+    final repository = ref.watch(userMeRepositoryProvider);
+    return BasketProvider(
+      repository: repository,
+    );
   },
 );
 
 class BasketProvider extends StateNotifier<List<BasketItemModel>> {
-  BasketProvider() : super([]);
+  final UserMeRepository repository;
+  final updateBasketDebounce = Debouncer(
+    Duration(seconds: 1),
+    initialValue: null,
+    checkEquality: false,
+  );
+
+  BasketProvider({
+    required this.repository,
+  }) : super([]) {
+    updateBasketDebounce.values.listen(
+      (event) {
+        patchBasket();
+      },
+    );
+  }
+
+  Future<void> patchBasket() async {
+    await repository.patchBasket(
+      body: PatchBasketBody(
+        basket: state
+            .map(
+              (e) => PatchBasketBodyBasket(
+                productId: e.product.id,
+                count: e.count,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
 
   Future<void> addToBasket({
     required ProductModel product,
@@ -20,6 +56,10 @@ class BasketProvider extends StateNotifier<List<BasketItemModel>> {
     // 장바구니에 상품을 추가한다.
     // 2) 만약에 이미 들어있다면
     // 장바구니에 있는 값에 +1을 한다.
+
+    // 요청을 먼저 보내고
+    // 응답이 오면
+    // 캐시를 업데이트 했다.
 
     final exists =
         state.firstWhereOrNull((e) => e.product.id == product.id) != null;
@@ -43,6 +83,11 @@ class BasketProvider extends StateNotifier<List<BasketItemModel>> {
         ),
       ];
     }
+
+    // Optimistic Respone (긍정적 응답)
+    // 응답이 성공할거라고 가정하고 상태를 먼저 업데이트 함.
+    // await patchBasket();
+    updateBasketDebounce.setValue(null);
   }
 
   Future<void> removeFromBasket({
@@ -82,5 +127,8 @@ class BasketProvider extends StateNotifier<List<BasketItemModel>> {
           )
           .toList();
     }
+
+    // await patchBasket();
+    updateBasketDebounce.setValue(null);
   }
 }

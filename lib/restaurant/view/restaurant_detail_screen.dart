@@ -1,6 +1,9 @@
+import 'package:badges/badges.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:login_authentication/common/const/colors.dart';
 import 'package:login_authentication/common/const/data.dart';
 import 'package:login_authentication/common/dio/dio.dart';
 import 'package:login_authentication/common/layout/default_layout.dart';
@@ -16,6 +19,7 @@ import 'package:login_authentication/restaurant/model/restaurant_model.dart';
 import 'package:login_authentication/restaurant/provider/restaurant_provider.dart';
 import 'package:login_authentication/restaurant/provider/restaurant_rating_provider.dart';
 import 'package:login_authentication/restaurant/repository/restaurant_repository.dart';
+import 'package:login_authentication/restaurant/view/basket_screen.dart';
 import 'package:login_authentication/user/provider/basket_provider.dart';
 import 'package:skeletons/skeletons.dart';
 
@@ -60,6 +64,7 @@ class _RestaurantDetailsScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(restaurantDetailProvider(widget.id));
     final ratingsState = ref.watch(restaurantRatingProvider(widget.id));
+    final basket = ref.watch(basketProvider);
 
     if (state == null) {
       return DefaultLayout(
@@ -71,6 +76,31 @@ class _RestaurantDetailsScreenState
 
     return DefaultLayout(
       title: '불타는 떡볶이,',
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.pushNamed(BasketScreen.routeName);
+        },
+        backgroundColor: PRIMARY_COLOR,
+        child: Badge(
+          showBadge: basket.isNotEmpty,
+          badgeContent: Text(
+            basket
+                .fold<int>(
+                  0,
+                  (previous, next) => previous + next.count,
+                )
+                .toString(),
+            style: TextStyle(
+              color: PRIMARY_COLOR,
+              fontSize: 10.0,
+            ),
+          ),
+          badgeColor: Colors.white,
+          child: Icon(
+            Icons.shopping_basket_outlined,
+          ),
+        ),
+      ),
       child: CustomScrollView(
         controller: controller,
         slivers: [
@@ -80,10 +110,7 @@ class _RestaurantDetailsScreenState
           if (state is! RestaurantDetailModel) renderLoading(),
           if (state is RestaurantDetailModel) renderLaber(),
           if (state is RestaurantDetailModel)
-            renderProducts(
-              products: state.products,
-              restaurant: state
-            ),
+            renderProducts(products: state.products, restaurant: state),
           if (ratingsState is CursorPagination<RatingModel>)
             renderRatings(
               models: ratingsState.data,
